@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Typing Speed Game — Web Club</title>
+  <style>
+    :root{
+      --bg:#0f172a;--bg-light:#f9fafb;--card:#0b1220;--card-light:#fff;--accent:#06b6d4;--muted:#94a3b8
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,"Poppins",sans-serif;
+      background:linear-gradient(180deg,#071029 0%,#0b1220 100%);
+      color:#e6eef6;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      align-items:stretch;
+      justify-content:flex-start;
+      padding:0;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+    body.light{background:var(--bg-light);color:#1e293b}
+    .container{
+      width:100%;
+      min-height:100vh;
+      background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.03));
+      border-radius:0;
+      box-shadow:none;
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* 🎯 Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .modal.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-content {
+      background: var(--card);
+      color: inherit;
+      padding: 20px;
+      border-radius: 14px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      animation: pop 0.3s ease;
+    }
+    .modal-content h2 {margin-bottom: 10px;font-size: 22px;}
+    .modal-content button {
+      margin-top: 12px;
+      background: var(--accent);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    @keyframes pop {
+      from {transform: scale(0.8); opacity: 0;}
+      to {transform: scale(1); opacity: 1;}
+    }
+
+    h1{
+      text-align:center;
+      font-size:28px;
+      margin-bottom:20px
+    }
+
+
+    .top{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:10px
+    }
+
+    .stats{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center
+    }
+
+
+    .stat{
+      background:rgba(255,255,255,0.04);
+      padding:10px 14px;
+      border-radius:12px;
+      min-width:100px;
+      text-align:center;
+    }
+    .stat .label{
+      font-size:12px;
+      color:var(--muted)
+    }
+
+
+
+    .stat .value{
+      font-weight:700;
+      font-size:20px;
+      color:var(--accent);
+    }
+
+
+    .card{
+      flex:1;
+      margin-top:12px;
+      background:var(--card);
+      padding:16px;
+      border-radius:12px;
+      min-height:200px;
+      transition:background 0.3s;
+    }
+
+    body.light .card{background:var(--card-light)}
+    .text-to-type{
+      font-family:ui-monospace,Menlo,monospace;
+      background:rgba(2,6,23,0.5);
+      padding:14px;
+      border-radius:10px;
+      line-height:1.6;
+      white-space:pre-wrap;
+      font-size:16px;
+    }
+
+
+    .text-to-type .correct{color:#86efac}
+    .text-to-type .wrong{
+      color:#fb7185;
+      text-decoration:underline;
+      animation:shake 0.3s;
+    }
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+    .controls{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      align-items:stretch;
+      margin-top:14px;
+    }
+
+
+textarea#input {
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: inherit;
+  font-size: 20px;
+  font-family: ui-monospace, Menlo, monospace;
+  width: 100%;
+  min-height: 120px;
+  resize: none; /* 🚫 نوقف التكبير اليدوي لأننا راح نديرو auto-expand */
+  overflow: hidden; /* باش ما يبانش scroll */
+  line-height: 1.5;
+  transition: height 0.2s ease;
+}
+
+
+
+    input[type="text"]{padding:12px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.08);
+      background:transparent;
+      color:inherit;
+      font-size:16px;
+      width:100%}
+    .btn-row{display:flex;
+      gap:8px;
+      justify-content:space-between;
+      flex-wrap:wrap
+    }
+    button{flex:1;
+      background:var(--accent);
+      border:none;
+      padding:12px;
+      border-radius:10px;
+      color:#022;
+      cursor:pointer;
+      font-weight:700;
+      font-size:16px;
+      transition:transform 0.15s;
+    }
+    button:hover{transform:scale(1.04)}
+    .footer{
+      margin-top:12px;
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .examples{display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      margin-top:10px;
+      justify-content:center;
+    }
+
+
+    .chip{background:rgba(255,255,255,0.05);
+      padding:6px 10px;
+      border-radius:999px;
+      cursor:pointer;
+      font-size:14px;
+    }
+
+
+    .chip:hover{border:1px solid rgba(255,255,255,0.08)}
+    
+   .theme-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--muted);
+  padding: 6px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s, color 0.2s;
+  z-index: 999;
+}
+body.light .theme-toggle {
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle.rotate {
+  transform: rotate(360deg);
+  transition: transform 0.5s ease;
+}
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: rotate(10deg) scale(1.1);
+}
+
+    @media(min-width:768px){.controls{flex-direction:row;align-items:center}.btn-row{flex:unset;gap:10px}}
+ 
+
+    textarea.error {
+  animation: shake 0.2s;
+  border-color: red;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+ 
+ 
+  </style>
+
+
+</head>
+<body>
+  <div class="container">
+    <h1>Typing Speed Game — Web Club</h1>
+    <div class="top">
+      <div class="stats">
+        <div class="stat"><div class="label">Speed (WPM)</div><div id="wpm" class="value">0</div></div>
+        <div class="stat"><div class="label">Accuracy %</div><div id="acc" class="value">100</div></div>
+        <div class="stat"><div class="label">Time</div><div id="time" class="value">0s</div></div>
+        <div class="stat"><div class="label">Best WPM</div><div id="best" class="value">0</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="text" class="text-to-type" aria-live="polite"></div>
+      <div class="controls">
+        <textarea id="input" placeholder="Start typing here — timer starts on first key press..." autocomplete="off" spellcheck="false"></textarea>
+
+        <div class="btn-row">
+          <button id="check">Quick Check</button>
+          <button id="restart">Restart</button>
+          <button id="next" class="secondary">New Sentence</button>
+        </div>
+      </div>
+      <div class="examples">
+        <div class="chip" data-idx="0">HTML Snippet</div>
+        <div class="chip" data-idx="1">JavaScript Line</div>
+        <div class="chip" data-idx="2">CSS Rule</div>
+        <div class="chip" data-idx="3">Tech Sentence</div>
+        <div class="chip" data-idx="4">Random Words</div>
+      </div>
+    </div>
+<button id="themeToggle" class="theme-toggle">🌙</button>
+
+    <div class="footer">© 2025 TechZone Club — All rights reserved</div>
+  </div>
+
+  <!-- Modal -->
+  <div id="resultModal" class="modal">
+    <div class="modal-content">
+      <h2>🎉 Well Done!</h2>
+      <p id="finalStats"></p>
+      <button id="closeModal">Close</button>
+    </div>
+  </div>
+
+ <script>
+const texts = [
+  // --- Advanced HTML Snippet ---
+  `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Grid</title>
+</head>
+<body>
+  <header><nav><ul><li><a href="#">Home</a></li><li><a href="#">Docs</a></li></ul></nav></header>
+  <main><section class="hero"><h1>Typing Challenge</h1><p>Practice makes perfect.</p></section></main>
+</body>
+</html>`,
+
+  // --- Advanced JavaScript Snippet ---
+  `async function fetchData(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Network error");
+    const data = await response.json();
+    console.log("Fetched:", data);
+  } catch (err) {
+    console.error(err.message);
+  }
+}`,
+
+  // --- Complex CSS ---
+  `.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  align-items: stretch;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  border-radius: 16px;
+}`,
+
+  // --- Long Tech Sentence ---
+  `Typing accuracy is a critical skill for programmers; even a single misplaced character can break your code and cause hours of debugging frustration.`,
+
+  // --- Hard Random Words ---
+  `synchronization polymorphism encapsulation recursion asynchronous algorithm performance optimization debugging refactoring scalability abstraction inheritance`,
+
+  // --- Git Command ---
+  `git checkout -b feature/add-dark-mode && git add . && git commit -m "feat: add dark mode toggle" && git push origin feature/add-dark-mode`,
+
+  // --- Extra Hard Sentence ---
+  `Writing clean, maintainable, and efficient code is both an art and a science, requiring constant practice, peer review, and a willingness to refactor.`,
+
+  // --- Another Long Line ---
+  `Version control systems like Git help developers collaborate on code, track changes over time, and roll back to previous states when necessary.`
+];
+
+let currentText = "";
+let startTime, timer;
+let bestWpm = 0;
+
+const savedBest = localStorage.getItem("bestWpm");
+if (savedBest) {
+  bestWpm = parseInt(savedBest);
+  document.getElementById("best").textContent = bestWpm;
+}
+
+function loadText(index = null) {
+  currentText = index !== null ? texts[index] : texts[Math.floor(Math.random() * texts.length)];
+  document.getElementById("text").textContent = currentText;
+  document.getElementById("input").value = "";
+  document.getElementById("time").textContent = "0s";
+  startTime = null;
+  clearInterval(timer);
+}
+
+const sounds = {
+  beep: new Audio("sounds/beep.mp3"),
+  success: new Audio("sounds/success.mp3"),
+  error: new Audio("sounds/error.mp3"),
+  finish: new Audio("sounds/finish.mp3")
+};
+
+function playSound(name) {
+  const s = sounds[name];
+  if (s) { s.currentTime = 0; s.volume = 0.4; s.play(); }
+}
+
+function startTimer() {
+  if (startTime) return;
+  startTime = Date.now();
+  timer = setInterval(() => {
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    document.getElementById("time").textContent = seconds + "s";
+  }, 1000);
+}
+
+function checkTyping() {
+  const input = document.getElementById("input").value;
+  let correctChars = 0;
+  let html = "";
+
+  for (let i = 0; i < currentText.length; i++) {
+    if (input[i] == null) {
+      html += `<span>${currentText[i]}</span>`;
+    } else if (input[i] === currentText[i]) {
+      html += `<span class="correct">${currentText[i]}</span>`;
+      correctChars++;
+    } else {
+      html += `<span class="wrong">${currentText[i]}</span>`;
+      playSound("error");
+    }
+  }
+
+  document.getElementById("text").innerHTML = html;
+
+  const accuracy = ((correctChars / input.length) * 100) || 100;
+  document.getElementById("acc").textContent = accuracy.toFixed(0);
+
+  const timeElapsed = (Date.now() - startTime) / 1000 / 60;
+  const wpm = Math.round((input.length / 5) / timeElapsed) || 0;
+  document.getElementById("wpm").textContent = wpm;
+
+  if (input === currentText) {
+    clearInterval(timer);
+    playSound("finish");
+    const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+    if (!savedBest || wpm > savedBest) {
+      localStorage.setItem("bestWpm", wpm);
+      document.getElementById("best").textContent = wpm;
+    }
+    showResultModal(wpm, accuracy.toFixed(0), elapsedSeconds);
+  }
+}
+
+function showResultModal(wpm, acc, time) {
+  document.getElementById("finalStats").innerHTML =
+    `Speed: <b>${wpm} WPM</b><br>Accuracy: <b>${acc}%</b><br>Time: <b>${time}s</b>`;
+  document.getElementById("resultModal").classList.add("show");
+}
+
+document.getElementById("closeModal").addEventListener("click", () => {
+  document.getElementById("resultModal").classList.remove("show");
+  loadText();
+});
+
+document.getElementById("input").addEventListener("input", () => {
+  startTimer();
+  checkTyping();
+});
+
+document.getElementById("restart").addEventListener("click", () => loadText());
+document.getElementById("next").addEventListener("click", () => loadText());
+document.querySelectorAll(".chip").forEach(chip =>
+  chip.addEventListener("click", () => loadText(parseInt(chip.dataset.idx)))
+);
+
+const inputField = document.getElementById("input");
+function autoResize() {
+  inputField.style.height = "auto";
+  inputField.style.height = inputField.scrollHeight + "px";
+}
+inputField.addEventListener("input", autoResize);
+autoResize();
+
+const themeToggle = document.getElementById("themeToggle");
+themeToggle.addEventListener("click", () => {
+  document.body.classList.toggle("light");
+  themeToggle.classList.add("rotate");
+  setTimeout(() => themeToggle.classList.remove("rotate"), 500);
+  themeToggle.textContent = document.body.classList.contains("light") ? "☀️" : "🌙";
+});
+
+loadText();
+</script>
+
+</body>
+</html>   
